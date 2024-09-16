@@ -26,12 +26,15 @@ class production_line extends CModule
     public function DoInstall()
     {
         $this->InstallDB();
+        COption::SetOptionString("production.line", "totalMileage");
         ModuleManager::registerModule($this->MODULE_ID);
+        
     }
 
     public function DoUninstall()
     {
         $this->UnInstallDB();
+        COption::RemoveOption("production.line", "totalMileage");
         ModuleManager::unRegisterModule($this->MODULE_ID);
     }
 
