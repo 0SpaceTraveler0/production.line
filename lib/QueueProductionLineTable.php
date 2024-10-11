@@ -1,4 +1,5 @@
 <?php
+
 namespace Production\Line;
 
 use Bitrix\Main\Entity;
@@ -20,6 +21,8 @@ class QueueProductionLineTable extends Entity\DataManager
                 'primary' => true,
                 'autocomplete' => true,
             ])),
+            (new Entity\StringField('NAME_ORDER_MAIN')),
+            (new Entity\StringField('NAME_ORDER_COMBINED')),
             (new Entity\IntegerField('EFFICIENCY_PERCENT')),
             (new Entity\IntegerField('MATERIAL_WIDTH')),
             (new Entity\StringField('MATERIAL')),
@@ -38,12 +41,28 @@ class QueueProductionLineTable extends Entity\DataManager
         ];
     }
 
+    // Метод для удаления всех записей из таблицы
+    public static function deleteAllRecords()
+    {
+        $connection = \Bitrix\Main\Application::getConnection();
+        $connection->truncateTable(static::getTableName());
+        
+        // $connection = Application::getConnection();
+        // $tableName = static::getTableName();
+
+        
+        // $sql = "DELETE FROM {$tableName}";
+        // $connection->queryExecute($sql);
+    }
+
     public static function createTable()
     {
         $connection = \Bitrix\Main\Application::getConnection();
         $connection->queryExecute("
             CREATE TABLE IF NOT EXISTS " . self::getTableName() . " (
                 ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                NAME_ORDER_MAIN VARCHAR(255) NOT NULL,
+                NAME_ORDER_COMBINED VARCHAR(255) NOT NULL,
                 EFFICIENCY_PERCENT INT NOT NULL,
                 MATERIAL_WIDTH INT NOT NULL,
                 MATERIAL VARCHAR(255) NOT NULL,
@@ -64,7 +83,6 @@ class QueueProductionLineTable extends Entity\DataManager
 
         $connection = \Bitrix\Main\Application::getConnection();
         $connection->isTableExists(self::getTableName());
-
     }
 
     public static function dropTable()
@@ -74,4 +92,3 @@ class QueueProductionLineTable extends Entity\DataManager
         $connection->isTableExists(self::getTableName());
     }
 }
-
