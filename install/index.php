@@ -2,7 +2,7 @@
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
-
+use Production\Line\QueueProductionLineTable;
 Loc::loadMessages(__FILE__);
 
 class production_line extends CModule
@@ -27,47 +27,35 @@ class production_line extends CModule
     {
         $this->InstallDB();
         COption::SetOptionString("production.line", "totalMileage");
+        COption::SetOptionString("production.line", "last_processed_deal_id");
         ModuleManager::registerModule($this->MODULE_ID);
-        
     }
 
     public function DoUninstall()
     {
         $this->UnInstallDB();
         COption::RemoveOption("production.line", "totalMileage");
+        COption::RemoveOption("production.line", "last_processed_deal_id");
         ModuleManager::unRegisterModule($this->MODULE_ID);
     }
 
     public function InstallDB()
     {
-            global $DB;
-            $result = $DB->Query("SHOW TABLES LIKE 'queue_production_line'");
-            if ($result->SelectedRowsCount() > 0) {
-                // Таблица уже существует, пропускаем создание
-                return true;
-            }
-            
-            $errors = $DB->RunSQLBatch(__DIR__ . '/db/install.sql');
-            if ($errors) {
-                
-                //выполняем произвольный запрос
-                $name_array=array();
-                //создаем пустой массив, но можно эту строчку исключить
-                foreach ($errors as $row) {
-                    // echo $row['NAME'];//выводим все значения, которые вернул запрос
-                    array_push($name_array, $row);//если исключили создание массива, то исключите и эту строку, тут мы создаем массив со всеми значениями которые вернул запрос, чтобы потом этот массив использовать в любых целях.
-
-                }
-                // while ($row = $errors->Fetch())
-                // {
-                //     // echo $row['NAME'];//выводим все значения, которые вернул запрос
-                //     array_push($name_array, $row);//если исключили создание массива, то исключите и эту строку, тут мы создаем массив со всеми значениями которые вернул запрос, чтобы потом этот массив использовать в любых целях.
-                // }
-                global $APPLICATION;
-                $APPLICATION->ThrowException(implode('<br>', $errors));
-                return false;
-            }
+        global $DB;
+        $result = $DB->Query("SHOW TABLES LIKE 'queue_production_line'");
+        if ($result->SelectedRowsCount() > 0) {
             return true;
+        }
+
+        $errors = $DB->RunSQLBatch(__DIR__ . '/db/install.sql');
+        if ($errors) {
+            global $APPLICATION;
+            $APPLICATION->ThrowException(implode('<br>', $errors));
+            file_put_contents(__DIR__."/error_instal_bd.txt", print_r($errors, true), FILE_APPEND);
+            return false;
+        }
+
+        return true;
     }
 
     public function UnInstallDB()
@@ -75,6 +63,4 @@ class production_line extends CModule
         global $DB;
         $DB->RunSQLBatch(__DIR__ . '/db/uninstall.sql');
     }
-
-
 }
